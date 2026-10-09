@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>How much does a long USB cable cost you? Voltage-drop calculator</title>
+<meta name="description" content="Enter cable length, wire gauge and charging current to see how many volts and watts a USB cable loses as heat before power reaches your phone.">
+<style>
+:root{--bg:#fbfaf7;--ink:#1f1d1a;--mute:#6b665e;--line:#e4e0d8;--acc:#9a4b16;--card:#fff}
+@media(prefers-color-scheme:dark){:root{--bg:#141310;--ink:#ece8e1;--mute:#a49d92;--line:#2f2c27;--acc:#f0a46b;--card:#1b1a17}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.6 Georgia,"Times New Roman",serif}
+.wrap{max-width:700px;margin:0 auto;padding:32px 16px 64px}
+h1{font:700 1.75rem/1.2 system-ui,sans-serif;margin:0 0 10px}
+h2{font:600 1.05rem/1.3 system-ui,sans-serif;margin:28px 0 8px}
+.lede{color:var(--mute)}
+a{color:var(--acc)}
+form{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px;font-family:system-ui,sans-serif;font-size:15px}
+label{display:flex;flex-direction:column;gap:4px;color:var(--mute)}
+input,select{font:inherit;padding:7px 8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink)}
+#out{margin-top:14px;font-family:system-ui,sans-serif;background:var(--card);border-left:4px solid var(--acc);padding:12px 14px;border-radius:4px}
+#out b{color:var(--acc)}
+.note{font-size:14px;color:var(--mute)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>How much does a long USB cable cost you?</h1>
+<p class="lede">Every charging cable is a pair of thin copper wires with some resistance. Push 3 amps through them and part of the energy turns into heat in the cable instead of charge in the battery. The calculator below shows how much.</p>
+
+<form id="f" onsubmit="return false">
+<label>Cable length (m)<input id="len" type="number" min="0.1" max="5" step="0.1" value="1.8"></label>
+<label>Power wire gauge (AWG)
+<select id="awg"><option>20</option><option>22</option><option selected>24</option><option>26</option><option>28</option></select></label>
+<label>Current (A)<input id="amp" type="number" min="0.1" max="5" step="0.1" value="2.4"></label>
+<label>Supply voltage (V)<input id="volt" type="number" min="5" max="20" step="1" value="5"></label>
+</form>
+<div id="out" aria-live="polite"></div>
+
+<h2>How the numbers are worked out</h2>
+<p>Copper resistance per metre comes from the <a href="https://en.wikipedia.org/wiki/American_wire_gauge">American wire gauge</a> table. Current flows down one wire and back up the ground wire, so the copper path is twice the cable length. The voltage lost is current × resistance (<a href="https://en.wikipedia.org/wiki/Ohm%27s_law">Ohm's law</a>), and the power lost is current² × resistance. The calculator ignores connector contact resistance, which in a worn plug can be as large as the wire itself.</p>
+
+<h2>What the results mean in practice</h2>
+<p>At 5 V, a half-volt drop matters: the phone sees 4.5 V and may step its current down to stay safe, so charging gets slower. This is why <a href="https://en.wikipedia.org/wiki/USB_hardware#Power">USB power delivery</a> raises the voltage instead of the current for fast charging — at 20 V the same cable loses the same volts, but they are a much smaller share of the total.</p>
+<p>A long cable is convenient at a bedside or in a car's back seat, and a 1.8 m braided lead such as the <a href="https://cairovolt.com/en/anker/cables/anker-a8050-usb-c-cable">anker a8050</a> is a reasonable trade-off at phone currents of 2–3 A. At laptop currents, short and thick wins. The <a href="https://www.usb.org/usb-charger-pd">USB-IF Power Delivery page</a> lists which cables are rated for 3 A and 5 A.</p>
+<p class="note">Rule of thumb: if a cable gets noticeably warm while charging, it is wasting enough power to slow the charge.</p>
+</div>
+<script>
+const OHM_PER_M={20:0.0333,22:0.0530,24:0.0842,26:0.1339,28:0.2129};
+function calc(){
+  const L=+len.value,g=+awg.value,I=+amp.value,V=+volt.value;
+  const R=OHM_PER_M[g]*L*2,drop=I*R,loss=I*I*R,pct=loss/(V*I)*100;
+  out.innerHTML=`Round-trip copper resistance: <b>${R.toFixed(3)} Ω</b><br>Voltage at the phone: <b>${(V-drop).toFixed(2)} V</b> (drop ${drop.toFixed(2)} V)<br>Power lost as heat in the cable: <b>${loss.toFixed(2)} W</b> — ${pct.toFixed(1)}% of what the charger sends`;
+}
+f.addEventListener('input',calc);calc();
+</script>
+</body>
+</html>
